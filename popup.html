@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>API Cache DevTool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-800 text-white w-80 p-4 font-sans">
+    <div class="flex items-center justify-between mb-4">
+        <h1 class="text-xl font-bold text-gray-100">API Cache</h1>
+        <div class="flex items-center">
+            <span class="mr-3 text-sm font-medium text-gray-300">Active</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="cacheToggle" class="sr-only peer">
+                <div class="w-11 h-6 bg-gray-600 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+        </div>
+    </div>
+
+    <div class="bg-gray-900/50 p-3 rounded-lg mb-4 ring-1 ring-white/10">
+        <h2 class="text-lg font-semibold mb-2 text-gray-200">Cached Requests</h2>
+        <ul id="cacheList" class="space-y-2 text-sm max-h-64 overflow-y-auto pr-2">
+            <li class="text-gray-400 italic">Loading cache...</li>
+        </ul>
+    </div>
+
+    <button id="clearCache" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200">
+        Clear All Cache
+    </button>
+
+    <script src="popup.js"></script>
+</body>
+</html>

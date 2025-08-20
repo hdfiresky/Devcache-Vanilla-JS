@@ -1,0 +1,5 @@
+{
+  "name": "API Cache DevTool",
+  "description": "A Chrome and Edge extension to cache API calls during local development. This helps speed up frontend development by serving API responses from a local cache on page reload, avoiding network latency. The extension provides a simple UI to view cached requests, clear the cache, and toggle the caching feature on or off.",
+  "requestFramePermissions": []
+}
