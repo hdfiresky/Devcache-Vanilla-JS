@@ -1,0 +1,283 @@
+/* --- Global Styles & Custom Scrollbar --- */
+body {
+    background-color: #0f172a; /* slate-900 */
+    color: #e2e8f0; /* slate-200 */
+    width: 24rem; /* 384px */
+    padding: 1rem;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+}
+::-webkit-scrollbar-track {
+    background: #1e293b; /* slate-800 */
+    border-radius: 3px;
+}
+::-webkit-scrollbar-thumb {
+    background: #475569; /* slate-600 */
+    border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #64748b; /* slate-500 */
+}
+
+/* --- Header --- */
+#header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+#header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#header-icon {
+    height: 1.5rem;
+    width: 1.5rem;
+    color: #22d3ee; /* cyan-400 */
+}
+
+#header h1 {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #f1f5f9; /* slate-100 */
+    letter-spacing: 0.025em;
+    margin: 0;
+}
+
+/* --- Toggle Switch --- */
+#toggle-container {
+    display: flex;
+    align-items: center;
+}
+
+#toggle-container label[for="cacheToggle"] {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #94a3b8; /* slate-400 */
+    margin-right: 0.75rem;
+    cursor: pointer;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px; /* w-11 */
+    height: 24px; /* h-6 */
+    cursor: pointer;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #334155; /* slate-700 */
+    transition: .4s;
+    border-radius: 24px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px; /* h-5 */
+    width: 20px; /* w-5 */
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+    border: 1px solid #cbd5e1; /* slate-300 */
+}
+
+input:checked + .slider {
+    background-color: #06b6d4; /* cyan-500 */
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #06b6d4;
+}
+
+input:checked + .slider:before {
+    transform: translateX(20px);
+}
+
+
+/* --- Cached Requests List --- */
+#requests-container {
+    background-color: rgba(30, 41, 59, 0.7); /* slate-800/70 */
+    padding: 0.25rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    border: 1px solid rgba(51, 65, 85, 0.5); /* ring-1 ring-slate-700/50 */
+}
+
+#requests-container h2 {
+    font-size: 0.75rem;
+    font-weight: bold;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin: 0;
+    padding: 0.5rem 0.5rem 0.25rem;
+    color: #94a3b8; /* slate-400 */
+}
+
+#cacheList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 15rem; /* 240px */
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.empty-state {
+    color: #64748b; /* slate-500 */
+    font-style: italic;
+    text-align: center;
+    padding: 2.5rem 1rem;
+}
+
+.cache-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem;
+    margin: 0 0.25rem;
+    border-radius: 0.5rem;
+    transition: background-color 150ms ease-in-out;
+    cursor: default;
+}
+
+.cache-item:hover {
+    background-color: rgba(51, 65, 85, 0.5); /* slate-700/50 */
+}
+
+.method-badge {
+    padding: 0.125rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: bold;
+    letter-spacing: 0.05em;
+    border-radius: 9999px;
+    border: 1px solid;
+    flex-shrink: 0;
+}
+
+.method-badge.get {
+    background-color: rgba(14, 165, 233, 0.2); color: #7dd3fc; border-color: rgba(56, 189, 248, 0.3);
+}
+.method-badge.post {
+    background-color: rgba(16, 185, 129, 0.2); color: #6ee7b7; border-color: rgba(16, 185, 129, 0.3);
+}
+.method-badge.put {
+    background-color: rgba(245, 158, 11, 0.2); color: #fcd34d; border-color: rgba(245, 158, 11, 0.3);
+}
+.method-badge.patch {
+    background-color: rgba(249, 115, 22, 0.2); color: #fdba74; border-color: rgba(249, 115, 22, 0.3);
+}
+.method-badge.delete {
+    background-color: rgba(239, 68, 68, 0.2); color: #fca5a5; border-color: rgba(239, 68, 68, 0.3);
+}
+
+.cache-item-info {
+    flex-grow: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cache-item-url {
+    color: #cbd5e1; /* slate-300 */
+    font-size: 0.875rem;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cache-item-time {
+    color: #64748b; /* slate-500 */
+    font-size: 0.75rem;
+    display: block;
+}
+
+.delete-btn {
+    margin-left: auto;
+    flex-shrink: 0;
+    padding: 0.25rem;
+    border-radius: 9999px;
+    color: #64748b; /* slate-500 */
+    opacity: 0;
+    transition: opacity 150ms ease-in-out, color 150ms, background-color 150ms;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cache-item:hover .delete-btn {
+    opacity: 1;
+}
+
+.delete-btn:hover {
+    background-color: rgba(239, 68, 68, 0.2); /* red-500/20 */
+    color: #f87171; /* red-400 */
+}
+
+.delete-icon {
+    height: 1rem;
+    width: 1rem;
+}
+
+/* --- Clear Button --- */
+#clearCache {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background-color: #1e293b; /* slate-800 */
+    color: #cbd5e1; /* slate-300 */
+    font-weight: bold;
+    padding: 0.625rem 1rem;
+    border-radius: 0.5rem;
+    transition: color 200ms ease-in-out, background-color 200ms ease-in-out, border-color 200ms ease-in-out;
+    border: 1px solid #334155; /* ring-1 ring-slate-700 */
+    cursor: pointer;
+}
+
+#clearCache:hover {
+    background-color: rgba(239, 68, 68, 0.2); /* red-500/20 */
+    color: #fca5a5; /* red-300 */
+    border-color: rgba(239, 68, 68, 0.5); /* hover:ring-red-500/50 */
+}
+
+.trash-icon {
+    height: 1.25rem;
+    width: 1.25rem;
+    transition: transform 200ms ease-in-out;
+}
+
+#clearCache:hover .trash-icon {
+    transform: scale(1.1);
+}
