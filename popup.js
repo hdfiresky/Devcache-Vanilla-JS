@@ -14,9 +14,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (cachedKeys.length === 0) {
             cacheList.innerHTML = `
-                <li class="text-slate-500 italic text-center py-8 px-2">
-                    No requests cached yet. <br>
-                    <span class="text-xs">Enable the cache and reload your app.</span>
+                <li class="text-slate-500 italic text-center py-10 px-4">
+                    No requests cached. Enable caching and reload your application to see requests here.
                 </li>`;
             return;
         }
@@ -35,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
         cachedKeys.slice().reverse().forEach(key => {
             const [method, url] = key.split('::');
             const li = document.createElement('li');
-            li.className = 'flex items-center gap-2 p-2 mx-1 rounded-md hover:bg-slate-700/50 transition-colors duration-150 cursor-default';
+            li.className = 'flex items-center gap-3 p-2.5 mx-1 rounded-lg hover:bg-slate-700/50 transition-colors duration-150 cursor-default';
             li.title = url; // Show full URL on hover
 
             // Method Badge
@@ -46,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // URL Span
             const urlSpan = document.createElement('span');
             urlSpan.textContent = url;
-            urlSpan.className = 'text-slate-300 text-xs truncate';
+            urlSpan.className = 'text-slate-300 text-sm truncate';
 
             li.appendChild(methodBadge);
             li.appendChild(urlSpan);
