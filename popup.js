@@ -3,6 +3,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearBtn = document.getElementById('clearCache');
     const cacheList = document.getElementById('cacheList');
 
+    const timeAgo = (timestamp) => {
+        if (!timestamp) return '';
+        const now = Date.now();
+        const seconds = Math.floor((now - timestamp) / 1000);
+        if (seconds < 10) return 'just now';
+        
+        let interval = seconds / 31536000;
+        if (interval > 1) return Math.floor(interval) + "y ago";
+        interval = seconds / 2592000;
+        if (interval > 1) return Math.floor(interval) + "mo ago";
+        interval = seconds / 86400;
+        if (interval > 1) return Math.floor(interval) + "d ago";
+        interval = seconds / 3600;
+        if (interval > 1) return Math.floor(interval) + "h ago";
+        interval = seconds / 60;
+        if (interval > 1) return Math.floor(interval) + "m ago";
+        return Math.floor(seconds) + "s ago";
+    };
+
     const loadCacheState = async () => {
         const { isCacheEnabled = false } = await chrome.storage.local.get('isCacheEnabled');
         toggle.checked = isCacheEnabled;
@@ -20,6 +39,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        const cachedItems = await chrome.storage.local.get(cachedKeys);
+
         const getMethodBadgeClasses = (method) => {
             switch (method.toUpperCase()) {
                 case 'GET':    return 'bg-sky-500/20 text-sky-300 ring-sky-500/30';
@@ -32,9 +53,14 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         cachedKeys.slice().reverse().forEach(key => {
-            const [method, url] = key.split('::');
+            const cacheData = cachedItems[key];
+            if (!cacheData) return;
+
+            const [method, ...urlParts] = key.split('::');
+            const url = urlParts.join('::').split('::')[0];
+
             const li = document.createElement('li');
-            li.className = 'flex items-center gap-3 p-2.5 mx-1 rounded-lg hover:bg-slate-700/50 transition-colors duration-150 cursor-default';
+            li.className = 'flex items-center gap-3 p-2.5 mx-1 rounded-lg hover:bg-slate-700/50 transition-colors duration-150 cursor-default group';
             li.title = url; // Show full URL on hover
 
             // Method Badge
@@ -42,13 +68,40 @@ document.addEventListener('DOMContentLoaded', () => {
             methodBadge.textContent = method;
             methodBadge.className = `px-2 py-0.5 text-xs font-bold tracking-wider rounded-full ring-1 shrink-0 ${getMethodBadgeClasses(method)}`;
 
-            // URL Span
+            // URL and Timestamp container
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'flex-grow truncate';
+            
             const urlSpan = document.createElement('span');
             urlSpan.textContent = url;
-            urlSpan.className = 'text-slate-300 text-sm truncate';
+            urlSpan.className = 'text-slate-300 text-sm';
+
+            const timeSpan = document.createElement('span');
+            timeSpan.textContent = `Cached ${timeAgo(cacheData.timestamp)}`;
+            timeSpan.className = 'text-slate-500 text-xs block';
+
+            infoDiv.appendChild(urlSpan);
+            infoDiv.appendChild(timeSpan);
+            
+            // Delete button
+            const deleteBtn = document.createElement('button');
+            deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>`;
+            deleteBtn.className = 'ml-auto shrink-0 p-1 rounded-full text-slate-500 hover:bg-red-500/20 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity';
+            deleteBtn.title = 'Delete this item from cache';
+
+            deleteBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                li.style.opacity = '0.5';
+                const { cachedKeys: currentKeys = [] } = await chrome.storage.local.get('cachedKeys');
+                const newKeys = currentKeys.filter(k => k !== key);
+                await chrome.storage.local.set({ cachedKeys: newKeys });
+                await chrome.storage.local.remove(key);
+            });
+
 
             li.appendChild(methodBadge);
-            li.appendChild(urlSpan);
+            li.appendChild(infoDiv);
+            li.appendChild(deleteBtn);
             cacheList.appendChild(li);
         });
     };
@@ -59,18 +112,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     clearBtn.addEventListener('click', async () => {
         const { cachedKeys = [] } = await chrome.storage.local.get('cachedKeys');
+        if (cachedKeys.length === 0) return;
         
         let keysToRemove = [...cachedKeys, 'cachedKeys'];
         
         await chrome.storage.local.remove(keysToRemove);
-        
-        // Disable caching after clearing for safety
-        await chrome.storage.local.set({ isCacheEnabled: false });
-
-        // The storage listener will handle UI updates, but we can call them manually
-        // for instant feedback in case the listener is slow.
-        await loadCachedItems();
-        await loadCacheState();
+        // Note: No longer disabling the cache on clear.
     });
 
     // Initial loads
@@ -80,9 +127,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Listen for storage changes to update UI in realtime
     chrome.storage.onChanged.addListener((changes, area) => {
         if (area === 'local') {
+            // If keys change (add, remove, clear), reload the list
             if (changes.cachedKeys) {
                 loadCachedItems();
             }
+            // If toggle state changes, update the toggle
             if (changes.isCacheEnabled) {
                 loadCacheState();
             }

@@ -39,8 +39,6 @@ Since this is an unpacked extension, you need to load it manually in your browse
     -   Select the folder where you downloaded the extension's code (the folder containing `manifest.json`).
 5.  **Pin the Extension (Recommended):** Click the puzzle piece icon in your browser's toolbar and pin the "API Cache DevTool" for easy access.
 
-**Note:** The `manifest.json` file references icons in an `/icons` directory. You will need to create this directory and add your own `icon16.png`, `icon48.png`, and `icon128.png` for the extension icon to appear correctly.
-
 ## How to Use
 
 1.  **Start your local development server** for your web application (e.g., `npm start`).
