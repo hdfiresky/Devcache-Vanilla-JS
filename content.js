@@ -4,6 +4,45 @@
         return;
     }
 
+    // --- Start: Axios Interception Logic ---
+
+    // 1. Inject the interceptor script into the page to access `window.axios`
+    const s = document.createElement('script');
+    s.src = chrome.runtime.getURL('interceptor.js');
+    (document.head || document.documentElement).appendChild(s);
+    s.onload = function() {
+        // Clean up the script tag after it has run
+        s.remove();
+    };
+
+    // 2. Listen for requests from the injected script (page context)
+    window.addEventListener('api-cache-request', async (event) => {
+        const { action, keys, data, requestId } = event.detail;
+        let responseData = null;
+
+        try {
+            if (action === 'get') {
+                responseData = await chrome.storage.local.get(keys);
+            } else if (action === 'set') {
+                await chrome.storage.local.set(data);
+                responseData = { success: true };
+            }
+        } catch (e) {
+            console.error('[API Cache] Error accessing storage:', e);
+            responseData = { error: e.message };
+        }
+        
+        // 3. Send the response back to the injected script
+        window.dispatchEvent(new CustomEvent('api-cache-response', {
+            detail: { requestId, data: responseData }
+        }));
+    });
+
+    // --- End: Axios Interception Logic ---
+
+
+    // --- Start: Fetch Interception Logic ---
+
     const originalFetch = window.fetch;
 
     /**
@@ -87,7 +126,7 @@
         const methodForLog = options?.method || (typeof resource !== 'string' && resource.method) || 'GET';
 
         if (cachedResult[cacheKey]) {
-            console.log(`%c[API Cache] Serving from cache: ${methodForLog} ${url}`, 'color: #4CAF50; font-weight: bold;');
+            console.log(`%c[API Cache] Serving from cache (fetch): ${methodForLog} ${url}`, 'color: #4CAF50; font-weight: bold;');
             const { body, headers, status, statusText } = cachedResult[cacheKey];
             
             // The body from cache might be an object if it was JSON.
@@ -118,7 +157,7 @@
                     timestamp: Date.now()
                 };
                 
-                console.log(`%c[API Cache] Caching new response for: ${methodForLog} ${url}`, 'color: #2196F3; font-weight: bold;');
+                console.log(`%c[API Cache] Caching new response for (fetch): ${methodForLog} ${url}`, 'color: #2196F3; font-weight: bold;');
                 
                 await chrome.storage.local.set({ [cacheKey]: dataToCache });
                 

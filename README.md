@@ -12,14 +12,15 @@ While browser devtools offer features like "Override content," they can be cumbe
 
 ## The Solution
 
-**API Cache DevTool** solves this problem by intercepting and caching API calls made from your local development environment. Once a request is made and a successful response is received, it's stored locally. On the next page reload, the extension serves the response directly from the cache, eliminating network latency entirely.
+**API Cache DevTool** solves this by intercepting and caching API calls made via `fetch` or `axios` from your local development environment. Once a request is made and a successful response is received, it's stored locally. On the next page reload, the extension serves the response directly from the cache, eliminating network latency entirely.
 
 This means faster reloads, a smoother development experience, and less waiting.
 
 ## Features
 
 - **One-Click Caching:** Easily enable or disable caching with a simple toggle switch.
-- **Intelligent Caching:** Caches successful `GET`, `POST`, `PUT`, and `PATCH` requests. The cache key includes the method, URL, and request body (for state-changing methods) to avoid collisions.
+- **`fetch` and `axios` Support:** Automatically intercepts and caches requests made with both the native Fetch API and the popular Axios library.
+- **Intelligent Caching:** Caches successful requests (`GET`, `POST`, `PUT`, etc.). The cache key includes the method, URL, and request body to avoid collisions.
 - **View Cached Requests:** The popup UI displays a list of all currently cached API endpoints.
 - **Clear Cache:** A dedicated button allows you to instantly clear all cached data and start fresh.
 - **Zero Configuration:** Works out of the box for any web application running on any local server (`localhost`, `127.0.0.1`, etc.).
