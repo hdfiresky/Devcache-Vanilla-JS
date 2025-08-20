@@ -6,16 +6,39 @@
 
     const originalFetch = window.fetch;
 
-    const getCacheKey = (url, options) => {
-        const method = options?.method?.toUpperCase() || 'GET';
+    /**
+     * Generates a cache key for a fetch request. Now handles Request objects.
+     * @param {Request|string} resource - The resource to fetch.
+     * @param {object} [options] - The options for the fetch request.
+     * @returns {Promise<string|null>} A promise that resolves to the cache key or null.
+     */
+    const getCacheKey = async (resource, options) => {
+        const method = (options?.method || (typeof resource !== 'string' && resource.method) || 'GET').toUpperCase();
+        const url = typeof resource === 'string' ? resource : resource.url;
         let body = '';
-        // Only consider body for state-changing methods
-        if (options?.body && ['POST', 'PUT', 'PATCH'].includes(method)) {
-            if (typeof options.body === 'string') {
-                body = options.body;
-            } else {
-                // Not caching requests with non-string bodies for simplicity (e.g., FormData, Blob)
-                return null;
+
+        // Only consider body for methods that might have one
+        if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+            let bodySource = options?.body;
+            
+            // If the resource is a Request object, its body is the source of truth.
+            if (typeof resource !== 'string') {
+                try {
+                    // We MUST clone the request to read the body, as it's a one-time stream.
+                    body = await resource.clone().text();
+                } catch (e) {
+                    // This can happen if the body is already used, which shouldn't be the case here.
+                    console.warn('[API Cache] Could not read body from Request object. Caching may be inaccurate.', e);
+                    body = ''; // Fallback to empty body
+                }
+            } else if (bodySource) {
+                if (typeof bodySource === 'string') {
+                    body = bodySource;
+                } else {
+                    // Not caching requests with non-string bodies for simplicity (e.g., FormData, Blob)
+                    console.warn('[API Cache] Request body is not a string. Skipping cache for this request.');
+                    return null;
+                }
             }
         }
         return `${method}::${url}::${body}`;
@@ -26,7 +49,13 @@
         if (contentType && contentType.includes('application/json')) {
             // Use text first to avoid parse error on empty body
             const text = await response.text();
-            return text ? JSON.parse(text) : {};
+            try {
+                return text ? JSON.parse(text) : {};
+            } catch (e) {
+                // If parsing fails, return the raw text.
+                console.warn('[API Cache] Failed to parse JSON response, caching as text.', text);
+                return text;
+            }
         }
         return response.text();
     };
@@ -34,7 +63,6 @@
     window.fetch = async function(...args) {
         const [resource, options] = args;
 
-        // Make sure we are dealing with a URL string, not a Request object
         const url = (typeof resource === 'string') ? resource : resource.url;
         
         // Don't intercept requests made by the extension itself
@@ -47,19 +75,26 @@
         if (!isCacheEnabled) {
             return originalFetch.apply(this, args);
         }
-
-        const cacheKey = getCacheKey(url, options);
+        
+        // `getCacheKey` is now async to handle reading request bodies.
+        const cacheKey = await getCacheKey(resource, options);
 
         if (!cacheKey) {
             return originalFetch.apply(this, args);
         }
         
         const cachedResult = await chrome.storage.local.get(cacheKey);
+        const methodForLog = options?.method || (typeof resource !== 'string' && resource.method) || 'GET';
 
         if (cachedResult[cacheKey]) {
-            console.log(`%c[API Cache] Serving from cache: ${options?.method || 'GET'} ${url}`, 'color: #4CAF50; font-weight: bold;');
+            console.log(`%c[API Cache] Serving from cache: ${methodForLog} ${url}`, 'color: #4CAF50; font-weight: bold;');
             const { body, headers, status, statusText } = cachedResult[cacheKey];
-            return new Response(JSON.stringify(body), { status, statusText, headers: new Headers(headers) });
+            
+            // The body from cache might be an object if it was JSON.
+            // The Response constructor needs a string, Blob, etc.
+            const responseBody = typeof body === 'string' ? body : JSON.stringify(body);
+
+            return new Response(responseBody, { status, statusText, headers: new Headers(headers) });
         }
         
         const response = await originalFetch.apply(this, args);
@@ -83,7 +118,7 @@
                     timestamp: Date.now()
                 };
                 
-                console.log(`%c[API Cache] Caching new response for: ${options?.method || 'GET'} ${url}`, 'color: #2196F3; font-weight: bold;');
+                console.log(`%c[API Cache] Caching new response for: ${methodForLog} ${url}`, 'color: #2196F3; font-weight: bold;');
                 
                 await chrome.storage.local.set({ [cacheKey]: dataToCache });
                 
